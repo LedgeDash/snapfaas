@@ -87,8 +87,7 @@ fn main() {
         // acquire a worker from the pool and just pass it the request
         // send_req() here does not block
         let worker = wp.acquire();
-        let req_sender = worker.req_sender.clone();
-        req_sender.send((req.unwrap(), worker));
+        worker.send_req(req.unwrap());
 
         // it's passible for worker to be deallocated when exiting this for loop
     }
