@@ -17,16 +17,7 @@ pub struct VmAppConfig {
 #[derive(Debug)]
 pub struct Vm {
     pub id: usize,
-    pub process: Pid,
-    cgroup_name: PathBuf,
     pub memory: usize, // MB
-    pub cpu_share: usize,
-    pub vcpu_count: usize,
-    pub kernel: String,
-    pub kernel_args: String,
-    pub ready_notifier: File, // Vm writes to this File when setup finishes
-
-    pub app_config: VmAppConfig,
 }
 
 impl Vm {
