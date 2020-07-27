@@ -11,7 +11,6 @@ use std::net::{TcpStream};
 
 use log::error;
 
-//use crate::vsock::*;
 use crate::worker::Worker;
 use crate::request::Request;
 use crate::message::Message;

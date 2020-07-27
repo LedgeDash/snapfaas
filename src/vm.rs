@@ -8,7 +8,6 @@ use std::os::unix::net::{UnixStream, UnixListener};
 use crate::configs::FunctionConfig;
 use crate::request::Request;
 use crate::request;
-//use crate::vsock::VsockStream;
 //use cgroups::{cgroup_builder::CgroupBuilder, Cgroup};
 
 #[derive(Debug)]
@@ -51,7 +50,6 @@ pub struct Vm {
     pub id: usize,
     pub memory: usize, // MB
     pub function_name: String,
-    //vsock_stream: VsockStream,
     conn: UnixStream,
     process: Child,
     /*

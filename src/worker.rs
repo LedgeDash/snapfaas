@@ -22,7 +22,6 @@ use crate::vm;
 use crate::vm::Vm;
 use crate::metrics::Metrics;
 use crate::request;
-//use crate::vsock::VsockStream;
 
 const EVICTION_TIMEOUT: Duration = Duration::from_secs(2);
 const MACPREFIX: &str = "FF:FF:FF:FF";
