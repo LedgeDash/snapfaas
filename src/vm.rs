@@ -150,6 +150,7 @@ impl Vm {
         }
 
         let (conn, _) = vm_listener.accept().unwrap();
+        println!("Connected");
 
         return Ok(Vm {
             id: id.parse::<usize>().expect("vm id not int"),
@@ -162,10 +163,12 @@ impl Vm {
 
     /// Send request to vm and wait for its response
     pub fn process_req(&mut self, req: Request) -> Result<String, Error> {
+        println!("Sending req");
         let req_str = req.payload_as_string();
 
         let buf = req_str.as_bytes();
 
+        println!("Writing to vm");
         request::write_u8_vm(&buf, &mut self.conn).map_err(|e| {
             Error::VmWrite(e)
         })?;
@@ -179,6 +182,7 @@ impl Vm {
                 })
             }
             Err(e) => {
+                println!("Reading to vm");
                 Err(Error::VmRead(e))
             }
         }

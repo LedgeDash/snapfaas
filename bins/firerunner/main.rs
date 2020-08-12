@@ -347,6 +347,7 @@ fn main() {
         eprintln!("Vmm failed to start instance due to: {:?}", e);
         std::process::exit(1);
     }
+    println!("Started");
 
     vmm.join_vmm();
     std::process::exit(0);
