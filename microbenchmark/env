@@ -9,3 +9,8 @@ export SSDEXECSNAPSHOTDIR=/ssd/images/exec-snapshot
 export KERNEL=$MOUNTPOINT/images/vmlinux-4.20.0
 
 export MEMBINDIR=$MOUNTPOINT/bin/release
+
+export SSDPREEXECSNAPSHOTDIR=/ssd/images/preexec-snapshot
+export MEMPREEXECSNAPSHOTDIR=/tmp/snapfaas/images/preexec-snapshot
+export SSDJITLESSSNAPSHOTDIR=/ssd/images/jitless-snapshot
+export MEMJITLESSSNAPSHOTDIR=/tmp/snapfaas/images/jitless-snapshot
