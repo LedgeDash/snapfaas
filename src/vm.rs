@@ -74,7 +74,7 @@ impl Vm {
     pub fn new(
         id: &str,
         function_config: &FunctionConfig,
-        vm_listener: &UnixListener,
+        _vm_listener: &UnixListener,
         cid: u32,
         network: Option<&str>,
         firerunner: &str,
@@ -161,7 +161,8 @@ impl Vm {
             std::process::exit(0);
         }
 
-        let (conn, _) = vm_listener.accept().unwrap();
+        use std::os::unix::io::FromRawFd;
+        let conn = unsafe { UnixStream::from_raw_fd(-1) };
         ts_vec.push(Instant::now());
 
         return Ok((Vm {
@@ -212,6 +213,10 @@ impl Vm {
         if let Err(e) = self.process.kill() {
             error!("VM already exited: {:?}", e);
         }
+    }
+
+    pub fn wait(&mut self) {
+        self.process.wait().expect("firerunner didn't start");
     }
 }
 

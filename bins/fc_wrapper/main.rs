@@ -5,13 +5,8 @@ extern crate clap;
 /// the request to VM, waits for VM's response and finally prints the response
 /// to stdout, kills the VM and exits.
 use snapfaas::vm::Vm;
-use snapfaas::request;
-use snapfaas::unlink_unix_sockets;
 use snapfaas::configs::FunctionConfig;
-use std::io::BufRead;
 use std::os::unix::net::UnixListener;
-use std::time::Instant;
-use log::debug;
 
 use clap::{App, Arg};
 
@@ -208,69 +203,11 @@ fn main() {
         rootfs: !cmd_arguments.is_present("no odirect rootfs"),
         appfs: !cmd_arguments.is_present("no odirect appfs")
     };
-    let vm_listener_path = format!("worker-{}.sock_1234", CID);
-    let vm_listener = UnixListener::bind(vm_listener_path).expect("Failed to bind to unix listener");
     // Launch a vm based on the FunctionConfig value
-    let t1 = Instant::now();
     let firerunner = cmd_arguments.value_of("firerunner").unwrap();
-    let (mut vm, ts_vec) = match Vm::new(id, &vm_app_config, &vm_listener, CID,
-        cmd_arguments.value_of("network"), firerunner, cmd_arguments.is_present("force exit"), Some(odirect))
-    {
-        Ok(vm) => vm,
-        Err(e) => {
-            eprintln!("Vm creation failed due to: {:?}", e);
-            unlink_unix_sockets();
-            std::process::exit(1);
-        }
-    };
-    let t2 = Instant::now();
+    use std::os::unix::io::FromRawFd;
+    let (mut vm, _) = Vm::new(id, &vm_app_config, &unsafe{ UnixListener::from_raw_fd(-1) }, CID,
+        cmd_arguments.value_of("network"), firerunner, cmd_arguments.is_present("force exit"), Some(odirect)).expect("Failed to create vm");
 
-    println!("fc_wrapper: Building command took: {} us", ts_vec[1].duration_since(ts_vec[0]).as_micros());
-    println!("fc_wrapper: Spawning the command took: {} us", ts_vec[2].duration_since(ts_vec[1]).as_micros());
-    println!("fc_wrapper: Waiting for guest connection took: {} us", ts_vec[3].duration_since(ts_vec[2]).as_micros());
-    println!("fc_wrapper: Vm creation took: {} us", t2.duration_since(t1).as_micros());
-
-    // create a vector of Request values from stdin
-    let mut requests: Vec<request::Request> = Vec::new();
-    let stdin = std::io::stdin();
-    for line in std::io::BufReader::new(stdin).lines().map(|l| l.unwrap()) {
-        match request::parse_json(&line) {
-            Ok(j) => {
-                requests.push(j);
-            }
-            Err(e) => {
-                eprintln!("invalid requests: {:?}", e);
-                vm.shutdown();
-                unlink_unix_sockets();
-                std::process::exit(1);
-            }
-        }
-    }
-    let num_req = requests.len();
-    let mut num_rsp = 0;
-
-    // Synchronously send the request to vm and wait for a response
-    for req in requests {
-        let t1 = Instant::now();
-        match vm.process_req(req) {
-            Ok(_rsp) => {
-                let t2 = Instant::now();
-                println!("Request took: {} us", t2.duration_since(t1).as_micros());
-                debug!("Response: {:?}",_rsp);
-                num_rsp+=1;
-            }
-            Err(e) => {
-                eprintln!("Request failed due to: {:?}", e);
-            }
-        }
-    }
-
-    println!("***********************************************");
-    println!("Total requests: {}, Total resposnes: {}", num_req, num_rsp);
-    println!("***********************************************");
-
-    // Shutdown the vm and exit
-    println!("Shutting down vm...");
-    vm.shutdown();
-    unlink_unix_sockets();
+    vm.wait();
 }
